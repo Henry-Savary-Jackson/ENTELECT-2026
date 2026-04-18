@@ -1,4 +1,6 @@
 import json
+from  copy import deepcopy
+from itertools import product 
 
 
 car = dict()
@@ -70,7 +72,85 @@ def main():
     print(f"Race lap{race['laps']}")
     for i in segments:
         print(i)
+def decision_at_lap(lap, output_dict, tyre, tyres, time, fuel_used, wear, weather, speed):
+    outputs = []
+    # consider refuel
+    # combinations of refuel no refuel , and change in tyre
+    # enter pit or no
+    tyre = deepcopy(tyre)
+    tyres = deepcopy(tyres)
+    output_dict = deepcopy(output_dict)
+
+    decisions = [(t,False) for t in tyre if t["name"] != tyre["name"]]
+    decisions.extend([(tyre, True), (tyre, False)])
+
+    for tyre, change in decisions:
+        # if no more tyres skip
+        if (len(tyre["ids"]) <= 0 ):
+            continue
+
+        # ignore if not changing but tire worn out
+        if not change and tyre["life_span"] <= wear:
+            continue
+
+        new_wear = wear
+        if change:
+            # get new tyre
+            new_wear
+
+
+        # if new tyre, reset wear and tear
+
+
+        # reduce number of tyres
+        new_id = tyre["ids"].pop()
+        # calc lap 
+        lap_decision, lap_time, lap_fuel, lap_wear, lap_weather,lap_speed = calc_lap(lap, output_dict, tyre, time, fuel_used, wear, weather, speed)
+        # the recursively continue con
+        race_decision, race_time, race_fuel, fuel_needed_at_lap , race_wear = decision_at_lap(lap+1, lap_decision, tyre, tyres, lap_time, lap_fuel, lap_wear,lap_weather,lap_speed  )
+        # calculate
+        outputs.append( (race_decision, race_time, race_fuel,fuel_needed_at_lap, race_wear ))
+        # how much needed at last lap
+        
+   # get if not  
+    max_output = []
+    for output in outputs:
+        # get score, if greater than max, update max
+        max_output = output
+
+    return max_output
+
+        
     
+
+
+def calc_lap(lap, output_dict,tyre ,time, fuel_used, wear,weather,speed):
+    # choose a tire if at all
+    for i in range(len(segments)):
+        segment = segments[i]
+        length = segment["length_m"]
+        seg_type = segment["type"]
+        max_accel = car["accel_m/e2"]
+        max_break = car["brake_m/e2"]
+        # choose target speed
+        # choose brake distance
+        # fail if there is a crash or impossible
+        # if limp mode, continue until next pit stop, you WILL take pit stop
+        # if there is a corner crash, record it and 
+
+
+
+
+def decision_tree():
+    total_time = 0
+    total_fuel_usage = 0
+    total_wear = 0
+    weather = None # initial
+    output_dict = dict()
+    current_lap = 0
+
+    return output_dict
+
     print(f"Current weather {current_weather}\n")
     for s in weathers:
         print(s)
