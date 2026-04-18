@@ -72,6 +72,7 @@ def main():
     print(f"Race lap{race['laps']}")
     for i in segments:
         print(i)
+
 def decision_at_lap(lap, output_dict, tyre, tyres, time, fuel_used, wear, weather, speed):
     outputs = []
     # consider refuel
@@ -81,29 +82,14 @@ def decision_at_lap(lap, output_dict, tyre, tyres, time, fuel_used, wear, weathe
     tyres = deepcopy(tyres)
     output_dict = deepcopy(output_dict)
 
-    decisions = [(t,False) for t in tyre if t["name"] != tyre["name"]]
-    decisions.extend([(tyre, True), (tyre, False)])
 
-    for tyre, change in decisions:
-        # if no more tyres skip
-        if (len(tyre["ids"]) <= 0 ):
-            continue
+    for new_tyre, change in tyres:
 
         # ignore if not changing but tire worn out
-        if not change and tyre["life_span"] <= wear:
+        if not change and new_tyre["degradation"] <= 0:
             continue
 
-        new_wear = wear
-        if change:
-            # get new tyre
-            new_wear
-
-
-        # if new tyre, reset wear and tear
-
-
         # reduce number of tyres
-        new_id = tyre["ids"].pop()
         # calc lap 
         lap_decision, lap_time, lap_fuel, lap_wear, lap_weather,lap_speed = calc_lap(lap, output_dict, tyre, time, fuel_used, wear, weather, speed)
         # the recursively continue con
