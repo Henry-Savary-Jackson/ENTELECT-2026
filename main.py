@@ -18,6 +18,8 @@ current_weather = dict()
 
 weathers = list()
 
+craw_constant = 0
+
 def read_race_file(file_path):
     global car , race, tyres,segments, weathers, current_weather
     with open(file_path, "r") as file:
@@ -69,6 +71,7 @@ def base_score_level_2_and_3(time_reference, time, fuel_used,fuel_soft_cap_limit
     race = full_data["race"]
     car  = full_data["car"]
     
+    craw_constant = car["crawl_constant"]
     for seg in full_data["track"]["segments"]:
         segment = {
             "id" : seg["id"],"type" : seg["type"],"length" : seg["length_m"],}
@@ -148,14 +151,16 @@ def decision_at_lap(lap, output_dict, tyre, tyres, time, fuel_used, wear, weathe
         
    # get if not  
     max_output = []
+    max_score = 0
     for output in outputs:
         # get score, if greater than max, update max
-        max_output = output
+        score = base_score_level_1(0, output[1])
+        if score >= max_score:
+            max_output = output 
+            max_score = score
 
     return max_output
 
-        
-    
 
 
 def calc_lap(lap, output_dict,tyre ,time, fuel_used, wear,weather,speed):
@@ -164,9 +169,22 @@ def calc_lap(lap, output_dict,tyre ,time, fuel_used, wear,weather,speed):
         segment = segments[i]
         length = segment["length_m"]
         seg_type = segment["type"]
-        max_accel = car["accel_m/e2"]
-        max_break = car["brake_m/e2"]
+        accel = car["accel_m/e2"]
+        break_acc = car["brake_m/e2"]
+        if (segment["type"] == "straight"):
+            # choose
+            degradation = straight_degradation(tyre["degradation"], length)
+            # get the new corner's speed
+            if i != len(segments)-1:
+                corner = segments[i+1]
+
+                max_corner = max_corner_speed(tyre["dry_degradation"], weather["acceleration_multiplier"], speed,,corner["radius"] , craw_constant)
+
+        else:
+            degradation = corner_degradation(speed,segment["radius"], tyre["dry_degradation"] )
+    
         # choose target speed
+
         # choose brake distance
         # fail if there is a crash or impossible
         # if limp mode, continue until next pit stop, you WILL take pit stop
