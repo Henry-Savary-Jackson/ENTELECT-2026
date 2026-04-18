@@ -39,13 +39,12 @@ def corner_degradation(current_speed, radius, tyre_degradation_rate):
     return degradation
 
 # total_friction(tyre_degradation, straight_distance, initial_speed, final_speed, radius, , bese_friction_coefficient, weather_multiplier)
-def total_tyre_friction(tyre_degradation, straight_distance, initial_speed, final_speed, radius, bese_friction_coefficient, weather_multiplier):
-    total_degration = straight_degradation(tyre_degradation, straight_distance) + braking_degradation(initial_speed, final_speed, tyre_degradation) + corner_degradation(initial_speed, radius, tyre_degradation)
-    tyre_friction = (bese_friction_coefficient - total_degration) * weather_multiplier
+def total_tyre_friction(base_friction_coefficient, accumulated_degradation, weather_multiplier):
+    tyre_friction = (base_friction_coefficient - accumulated_degradation) * weather_multiplier
     return tyre_friction
 
 def fuel_Usage(initial_speed, final_speed, distance):
-    fuel_consumed = (k_base + k_drag * ((initial_speed - final_speed)/2)**2) * distance
+    fuel_consumed = (k_base + k_drag * ((initial_speed + final_speed)/2)**2) * distance
     return fuel_consumed
 
 def refueling_time(refuel_amount, refuel_rate):
@@ -66,8 +65,10 @@ def base_score_level_1(time_reference, time):
     score = 500000 * ((time_reference / time) ** 3)
     return score
 
-def base_score_level_2_and_3(time_reference, time, fuel_used,fuel_soft_cap_limit_l):
+def score_level_2_and_3(time_reference, time, fuel_used,fuel_soft_cap_limit_l):
     fuel_bonus = -500000 * (1 - fuel_used/fuel_soft_cap_limit_l)**2 + 500000
+    final_score = base_score_level_1(time_reference, time) + fuel_bonus
+    return final_score
     race = full_data["race"]
     car  = full_data["car"]
     
@@ -114,10 +115,13 @@ def base_score_level_2_and_3(time_reference, time, fuel_used,fuel_soft_cap_limit
     starting_id = full_data["race"]["starting_weather_condition_id"]
     current_weather.update(next(w for w in weathers if w["id"] == starting_id))   
 
-    
+
+def score_level_4(base_friction_coefficient, weather_multiplier, accumulated_degradation, number_of_blowouts):
+    tyre_bonus = 100000 * total_tyre_friction(base_friction_coefficient, accumulated_degradation, weather_multiplier) - 50000 * number_of_blowouts
+    return tyre_bonus
 
 def main():
-    read_race_file("example4.json")
+    read_race_file("1.txt")
 
     print(car)
     print(f"Race lap{race['laps']}")
@@ -178,7 +182,7 @@ def calc_lap(lap, output_dict,tyre ,time, fuel_used, wear,weather,speed):
             if i != len(segments)-1:
                 corner = segments[i+1]
 
-                max_corner = max_corner_speed(tyre["dry_degradation"], weather["acceleration_multiplier"], speed,,corner["radius"] , craw_constant)
+                max_corner = max_corner_speed(tyre["dry_degradation"], ,weather["acceleration_multiplier"], speed,,corner["radius"] , craw_constant)
 
         else:
             degradation = corner_degradation(speed,segment["radius"], tyre["dry_degradation"] )
